@@ -1,0 +1,2 @@
+RedirectMatch 404 writable/db\.sqlite3
+RedirectMatch 404 writable

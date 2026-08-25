@@ -123,7 +123,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
                             "comment": "None" //temporary
                             }))
                     
-                    const resp = await fetch("https://mtu.li/eat/create_order", {
+                    const resp = await fetch("/eat/api/create_order", {
                         method: "POST",
                         body: JSON.stringify({
                             "content": cart.slice(),

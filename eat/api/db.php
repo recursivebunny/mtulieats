@@ -1,4 +1,9 @@
 <?php
+    /*
+    This file handles setting up and interacting with the database
+    It should be included at the beginning of any file which uses the database
+    It should not be queried directly by the client */
+
     // Set up database if it doesn't exist
     if (!file_exists("writable/db.sqlite3")) {
         $db = new SQLite3("writable/db.sqlite3");
@@ -21,11 +26,13 @@
             code varchar(16),
             comment varchar(1023))");
     }
+    // Open existing database if it does exist
     else {
         $db = new SQLite3("writable/db.sqlite3");
     }
 
-    // Returns the username of the current user if valid; otherwise throws 401 Unauthorized
+    // Validates the token stored in the current request's cookie exists and matches the provided verified state
+    // Replies with 401 Unauthorized and exits if the token is not valid
     function validateToken($verified = 1) {
         global $db;
 

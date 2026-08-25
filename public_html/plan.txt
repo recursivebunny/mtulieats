@@ -1,1 +1,0 @@
-1. make sure mins and maxes are account for when choosing options

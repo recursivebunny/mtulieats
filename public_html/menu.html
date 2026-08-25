@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <select id="locations">
+            
+        </select>
+        <div>Menu for <span id="menuname">[loading...]</span>:</div>
+        <div id="menuplacement">
+            
+        </div>
+        <script>
+            let menus_global = [];
+            let menunames_global = [];
+            //let states = [];
+            
+            function loadmenu(index, menus, menunames) {
+                if (menus.length == 0 || menunames.length == 0) {
+                    return;
+                }
+                document.getElementById("menuplacement").textContent = "";
+                //console.log(menus)
+                document.getElementById("menuname").textContent = menunames[index];
+                for (let i = 0; i < menus[index].length; i++) {
+                    const items = menus[index][i].items;
+                    for (let j = 0; j < items.length; j++) {
+                        const item_box = document.createElement("div");
+                        item_box.setAttribute("class","menuitem")
+                        
+                        const itemname = document.createElement("h3")
+                        itemname.textContent = items[j].name;
+                        item_box.appendChild(itemname)
+                        
+                        const itemdesc = document.createElement("p")
+                        itemdesc.textContent = items[j].description.en;
+                        item_box.appendChild(itemdesc)
+                        
+                        if (items[j].options.length > 0) {
+                            const op_label = document.createElement("h4")
+                            op_label.textContent = "Options:";
+                            item_box.appendChild(op_label)
+                            
+                            const op_array = items[j].options;
+                            
+                            
+                            for (let k = 0; k < items[j].options.length; k++) {
+                                const op = document.createElement("p")
+                                const op_name = op_array[k].label.en;
+                                op.textContent = op_name + ": ";
+                                
+                                if (op_array[k].items.length > 0) {
+                                    for (let l = 0; l < op_array[k].items.length; l++) {
+                                        let sep = "; "
+                                        if (l + 1 === op_array[k].items.length) {
+                                            sep = "";
+                                        }
+                                        op.textContent = op.textContent + op_array[k].items[l].label.receipt + sep;
+                                    }
+                                }
+                                
+                                item_box.appendChild(op)
+                            }
+                            
+                            
+                            
+                        }
+                        
+                        document.getElementById("menuplacement").appendChild(item_box)
+                    }
+                }
+            }
+            
+            async function menudataget() {
+                const wideURL = "https://api.compassdigital.org/consumer/discounts/OkYqgJ4gvwI8R0Q6lRQAuJQY1KMGaOCJA1BDAYNOSaP2GJy5zMsBKgeLPwZyTrDlyzzJwoiom4"
+                try {
+                    const resp = await fetch(wideURL);
+                    if (!resp.ok) {
+                        throw new Error("wide api dead") //TODO: disp to user what the fuck happened with contact suggestion
+                    }
+                    const wide = await resp.json();
+                    const locations = wide.locations
+                    let dhhbrands = null;
+                    locations.forEach((loc) => {
+                        if (loc.id == "jDPLyJKy3etzdKz9lmv2TdYrXDWz7NsAXKE3BLAdtrWQav01EdCqYZLe5kmkcLXAPEN") {
+                            dhhbrands = loc.brands;
+                            //state = loc.state.pickup;
+                        }
+                    });
+                    
+                    if (dhhbrands == null) {
+                        throw new Error("dhh not found") 
+                    } else {
+                        //console.log(dhhbrands);
+                        
+                        let c = 0;
+                        let menus = [];
+                        let menunames = [];
+                        for (let i = 0; i < dhhbrands.length; i++) {
+                            const narrowmenuURL = "https://api.compassdigital.org/consumer/v2/menu/" + dhhbrands[i].menus[0].id;
+                            const mraw = await fetch(narrowmenuURL);
+                            if (!mraw.ok) {
+                                throw new Error("menu api dead")
+                            }
+                            const menuJSON = await mraw.json();
+                            //console.log(menuJSON);
+                            menus[c] = menuJSON.groups;
+                            menunames[c] = dhhbrands[i].name;
+                            c++;
+                        }
+                        //console.log(menus.length)
+                        //finally set menu options
+                        for (let i = 0; i < menus.length; i++) {
+                            //console.log("menu creation")
+                            const o = document.createElement("option")
+                            o.setAttribute("class","locationoption")
+                            o.setAttribute("value",i)
+                            o.textContent = menunames[i];
+                            //console.log(o);
+                            document.getElementById("locations").appendChild(o);
+                        }
+                        menus_global = menus.slice();
+                        menunames_global = menunames.slice();
+                        loadmenu(0, menus_global, menunames_global);
+                    }
+                    
+                } catch (error) {
+                    console.error(error);
+                    
+                }
+            }
+            
+            window.onload = function() {
+                document.getElementById("locations").addEventListener("change",(event) => {
+                    loadmenu(event.target.value, menus_global, menunames_global)
+                })
+                menudataget();
+                
+                //also add the menu itself lmao
+                
+                
+            }
+        </script>
+    </body>
+</html>

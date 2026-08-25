@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>TrickleEats - Order</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="/style.css">
+        <!--<style>
+            .qualities {
+                display:flex;
+            }
+            .qualities img {
+                max-height:2vh;
+            }
+            #menu button, #place {
+                min-width:10vw;
+                min-height:5vh;
+                background-color:red;
+                color:white;
+                border-radius:15px;
+                font-size:15pt;
+            }
+            li h4, li p, li div, li button {
+               margin:10px;
+            }
+            main {
+                display:flex;
+            }
+            #menu {
+                max-width:50vw;
+                overflow-y:scroll;
+                max-height:75vh;
+            }
+            #control {
+                width:100%;
+                max-width:50vw;
+            }
+            #cart {
+                overflow-y:scroll;
+            }
+        </style>-->
+        <style>
+            p {
+                margin-bottom:0;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="header">
+            <a href="menu">Today's Menu</a>
+            <a href="howitworks">How This Works</a>
+            <div id="gobuttons">
+                <a href="login"><button class="redbutton">Login/Sign Up</button></a>
+            </div>
+            
+        </div>
+        <main>
+            <div id="menu">
+                <h1>Today's Menu at <span id="menuname">[loading...]</span>:</h1>
+                <hr>
+                
+            </div>
+            <div id="control">
+                <div id="cart">
+                    <h1>Your Cart:</h1>
+                    <p>your cart is empty! Add some items :3</p>
+                </div>
+                <div id="final">
+                    <hr>
+                    <div id="pickuptime">
+                        <p>Select Pickup Time:</p>
+                        <select id="pickuptimebox">
+                            <option value="0">ASAP</option>
+                            <option value="15">15-30min.</option>
+                            <option value="30">30-45min.</option>
+                            <option value="45">45-60min.</option>
+                            <option value="120">2hr.</option>
+                            <option value="180">3hr.</option>
+                            <option value="240">4hr.</option>
+                        </select>
+                    </div>
+                    <button id="place" onclick="placeorder()">Place Order</button>
+                </div>
+            </div>
+        </main>
+        <hr>
+        <div id="footer">
+            <a href="about">About</a>
+            <a href="report">Report Abuse</a>
+            <a href="privacy">Privacy Policy</a>
+            <a href="tc">Terms of Use</a>
+            <div id="disclaimerbox">
+                <p>This page is in no way affiliated with Michigan Technological University or related entities.</p>
+            </div>
+        </div>
+        <script>
+            //TODO:
+            //-check for token, set username at top
+            //-pickup times update when page loads
+            //-place order lmao
+            //-add checkbox menu for multiple items, remember to constrain by max and min
+            let cart = []; //format: id, count, name, array of option 1 selections, array of option 2 selections, etc..
+            const local_menu_state = new Map();
+            //let states = [];
+            
+            async function placeorder() {
+                if (cart.length <= 0) {
+                    console.error("cart empty!") //temporary
+                    return;
+                } else {
+                    const time_expire = new Date(Date.now() + 1440*60000);//expire in 24 hours (temporary)
+                        // Source - https://stackoverflow.com/a/1214753
+                        // Posted by Kip, modified by community. See post 'Timeline' for change history
+                        // Retrieved 2026-08-24, License - CC BY-SA 4.0
+
+                    console.log(JSON.stringify({
+                            "content": JSON.parse(JSON.stringify(cart.slice())),
+                            "expires": time_expire.valueOf(),
+                            "comment": "None" //temporary
+                            }))
+                    
+                    const resp = await fetch("https://mtu.li/eat/create_order", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            "content": cart.slice(),
+                            "expires": time_expire.valueOf(),
+                            "comment": "None" //temporary
+                            })
+                    })
+            
+                    if (resp.status != 200) {
+                        console.error("order place failed! reason: " + resp.statusText)
+                    } else {
+                        console.log("yippee")
+                        //TODO: go to success page with response data displayed for user to screenshot or smth
+                    }
+                    
+                }
+            }
+            
+            function loadmenu(index, menus, menuname) {
+                const menu = document.getElementById("menu")
+                //console.log(menus)
+                //document.getElementById("menuname").textContent = menunames[index];
+                const namelabel = document.createElement("h2")
+                namelabel.textContent = menuname;
+                menu.appendChild(namelabel);
+                
+                const item_box = document.createElement("div")
+                
+                //for (let i = 0; i < menus.length; i++) {
+                    const items = menus[index].items;
+                    for (let j = 0; j < items.length; j++) {
+                        let meta = [];
+                        const itemID = items[j].id;
+                        
+                        
+                        const item_box = document.createElement("div");
+                        item_box.setAttribute("class","menuitem")
+                        
+                        const itemname = document.createElement("h3")
+                        meta[0] = items[j].name //name element of 
+                        itemname.textContent = items[j].name;
+                        item_box.appendChild(itemname)
+                        
+                        const itemdesc = document.createElement("p")
+                        itemdesc.textContent = items[j].description.en;
+                        item_box.appendChild(itemdesc)
+                        
+                        if (items[j].options.length > 0) {
+                            const op_label = document.createElement("h4")
+                            op_label.textContent = "Options:";
+                            item_box.appendChild(op_label)
+                            
+                            const op_array = items[j].options;
+                            
+                            for (let k = 0; k < items[j].options.length; k++) {
+                                meta[k + 1] = [];
+                                meta[k + 1][0] = op_array[k].label.en;
+                                console.log(op_array[k].min)
+                                if (op_array[k].max < 1) {
+                                    break;
+                                } else if (op_array[k].max === 1) {
+                                    const op = document.createElement("select")
+
+                                    const loc = k+1;
+                                    op.setAttribute("class",itemID + " " + loc) //class list that defines what and where the items are
+                                    const op_label = document.createElement("p")
+                                    op_label.textContent = op_array[k].label.en;
+                                    //const op_name = op_array[k].label.en;
+                                    //meta[k + 1] = op_array[k].label.en //todo: switch to options id lmao
+                                    //op.textContent = op_name + ": ";
+                                    
+                                    if (op_array[k].items.length > 0) {
+                                        if (op_array[k].min < 1) {
+                                            const op_choice = document.createElement("option")
+                                            op_choice.setAttribute("value","None")
+                                            op_choice.textContent = "None"
+
+
+
+                                            op.appendChild(op_choice);
+                                        }
+                                        for (let l = 0; l < op_array[k].items.length; l++) {
+                                            //let sep = "; "
+                                            //if (l + 1 === op_array[k].items.length) {
+                                            //    sep = "";
+                                            //}
+                                            //op.textContent = op.textContent + op_array[k].items[l].label.receipt + sep;
+                                            const op_choice = document.createElement("option")
+                                            op_choice.setAttribute("value",op_array[k].items[l].label.receipt)
+                                            op_choice.textContent = op_array[k].items[l].label.receipt
+
+
+
+                                            op.appendChild(op_choice);
+                                        }
+                                    }
+                                    meta[k + 1][1] = op.value;
+                                    op.addEventListener("change", function(e) { //update local menu state if user changes any selections
+                                        const temp = local_menu_state.get(e.target.classList[0]).slice();
+                                        temp[parseInt(e.target.classList[1])][1] = e.target.value
+                                        local_menu_state.set(e.target.classList[0], temp)
+                                    })
+                                     item_box.appendChild(op_label)
+                                     item_box.appendChild(op)
+                                } else {
+                                    //TODO: test this lmao
+                                    
+
+                                    const loc = k+1;
+                                    const op_label = document.createElement("p")
+                                    op_label.textContent = op_array[k].label.en;
+                                    item_box.appendChild(op_label)
+                                    
+                                    for (let l = 0; l < op_array[k].items.length; l++) {
+                                        const op_name = op_array[k].items[l].label.receipt;
+                                        const op_choice = document.createElement("option")
+                                        const op_choice_label = document.createElement("label")
+                                        op_choice_label.setAttribute("for",op_name)
+                                        op_choice_label.textContent = op_name
+                                        
+                                        op_choice.setAttribute("type","checkbox")
+                                        op_choice.setAttribute("name",op_name)
+                                        op_choice.setAttribute("id",op_name)
+                                        op_choice.setAttribute("class",itemID + " " + loc)
+                                        
+                                        op_choice.addEventListener("change", function(e) {
+                                            const temp = local_menu_state.get(e.target.classList[0]).slice();
+                                            temp[parseInt(e.target.classList[1])][l] = e.target.value //note: indexes lowercase L, not 1
+                                            local_menu_state.set(e.target.classList[0], temp)
+                                        })
+                                        
+                                        item_box.appendChild(op_choice)
+                                        item_box.appendChild(op_choice_label)
+                                    }
+                                    
+                                    
+                                    
+                                    
+                                }
+                                
+                            }
+                            
+                            
+                            
+                        }
+                        
+                        local_menu_state.set(itemID, meta);
+                        
+                        const addbutton = document.createElement("button")
+                        addbutton.setAttribute("value",itemID)
+                        addbutton.addEventListener("click", function (event) {
+                            const id = event.target.value;
+                            let item = local_menu_state.get(id).slice();
+                            //add count and id so they're pos 1 and pos 0, respectively
+                            item.unshift(1)
+                            item.unshift(id);
+                            const c = cart.filter((e) => e[0] === id)
+                            if (c.length !== 0) { //check if itemid already exists in cart, update count if items are exactly the same
+                                let temp = item.slice();
+                                let flag = false;
+                                for (let i = 0; i < c.length; i++) {
+                                    temp[1] = c[i][1]
+                                    if (c[i].toString() === temp.toString()) {
+                                        cart[cart.findIndex((e) => e == c[i])][1]++;
+                                        flag = true;
+                                        break; //update count and exit func
+                                    }
+                                }
+                                if (!flag) {
+                                    cart[cart.length] = item; //only reachable if no matching items were found
+                                }
+                                
+                                
+                            } else {
+                                cart[cart.length] = item;
+                            }
+                            
+                            //change cart display (amazingly inefficient mode but whatever)
+                            const cart_element = document.getElementById("cart")
+                            cart_element.textContent = ""
+                            c_label = document.createElement("h1")
+                            c_label.textContent = "Your Cart:"
+                            cart_element.appendChild(c_label)
+                            
+                            for (let i = 0; i < cart.length; i++) {
+                                const cart_item_box = document.createElement("div")
+                                
+                                const i_name = document.createElement("h3")
+                                i_name.textContent = cart[i][2];
+                                cart_item_box.appendChild(i_name);
+                                
+                                const i_count = document.createElement("p")
+                                //console.log("Count: " + cart[i][1])
+                                i_count.textContent = "Count: " + cart[i][1]; //todo: make it so you can edit count here
+                                cart_item_box.appendChild(i_count)
+                                
+                                if (cart[i].length > 3) {
+                                    const i_oplabel = document.createElement("h4")
+                                    i_oplabel.textContent = "Options:";
+                                    cart_item_box.appendChild(i_oplabel)
+                                    
+                                    const i_op = document.createElement("p")
+                                        
+                                    
+                                    for (let j = 3; j < cart[i].length; j++) {
+                                        let sep = "; "
+                                        if (j + 1 === cart[i].length) {
+                                            sep = "";
+                                        }
+                                        //TODO: add option names eventually lmao
+                                        if (cart[i][j].length > 2) {
+                                            for (let k = 1; k < cart[i][j].length; k++) {
+                                                i_op.textContent = i_op.textContent + cart[i][j][k] + sep;
+                                            }
+                                        } else {
+                                            i_op.textContent = i_op.textContent + cart[i][j][1] + sep;
+                                        }
+                                        
+                                    }
+                                    
+                                    cart_item_box.appendChild(i_op)
+                                }
+                                cart_item_box.appendChild(document.createElement("hr"))
+                                cart_element.appendChild(cart_item_box);
+                            }
+                            
+                        })
+                        addbutton.textContent = "Add to cart"
+                        item_box.appendChild(document.createElement("br"))
+                        item_box.appendChild(addbutton)
+                        //TODO: add item add button lmao
+                        
+                        
+                        menu.appendChild(item_box)
+                    }
+                //}
+                menu.appendChild(document.createElement("hr"))
+            }
+            
+            async function menudataget(menuid) {
+                const wideURL = "https://api.compassdigital.org/consumer/discounts/OkYqgJ4gvwI8R0Q6lRQAuJQY1KMGaOCJA1BDAYNOSaP2GJy5zMsBKgeLPwZyTrDlyzzJwoiom4"
+                try {
+                    const narrowmenuURL = "https://api.compassdigital.org/consumer/v2/menu/" + menuid;
+                    const mraw = await fetch(narrowmenuURL);
+                    if (!mraw.ok) {
+                        throw new Error("menu api dead")
+                    }
+                    const menuJSON = await mraw.json();
+                    document.getElementById("menuname").textContent = menuJSON.meta.brand.name
+                    console.log(menuJSON)
+                    for (let i = 0; i < menuJSON.groups.length; i++) {
+                        loadmenu(i, menuJSON.groups, menuJSON.groups[i].label.en)
+                    }
+                } catch (error) {
+                    console.error(error);
+                    return -1;
+                }
+                return 0;
+            }
+            
+            window.onload = function() {
+                let p = new URLSearchParams(document.location.search)
+                const locid = p.get("locid")
+                if (locid !== null) {
+                    menudataget(p.get("locid"));
+                    
+                } else {
+                    //clear page and display error
+                    document.body.textContent = "Malformed url!"
+                }
+                
+            }
+        </script>
+    </body>
+</html>

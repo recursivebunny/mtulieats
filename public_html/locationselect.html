@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>TODO write content</div>
+        <select id="locselect">
+            
+        </select>
+        <button onclick="go()">Select</button>
+        <script>
+            function go() {
+                window.location.href = "/order?locid=" + document.getElementById("locselect").value
+            }
+    
+            async function menudataget() {
+                const wideURL = "https://api.compassdigital.org/consumer/discounts/OkYqgJ4gvwI8R0Q6lRQAuJQY1KMGaOCJA1BDAYNOSaP2GJy5zMsBKgeLPwZyTrDlyzzJwoiom4"
+                try {
+                    const resp = await fetch(wideURL);
+                    if (!resp.ok) {
+                        throw new Error("wide api dead") //TODO: disp to user what the fuck happened with contact suggestion
+                    }
+                    const wide = await resp.json();
+                    const locations = wide.locations
+                    let dhhbrands = null;
+                    locations.forEach((loc) => {
+                        if (loc.id == "jDPLyJKy3etzdKz9lmv2TdYrXDWz7NsAXKE3BLAdtrWQav01EdCqYZLe5kmkcLXAPEN") {
+                            dhhbrands = loc.brands;
+                            //state = loc.state.pickup;
+                        }
+                    });
+                    console.log(dhhbrands)
+                    if (dhhbrands == null) {
+                        throw new Error("dhh not found") 
+                    } else {
+                        
+                        let c = 0;
+                        let menunames = [];
+                        let menuids = [];
+                        for (let i = 0; i < dhhbrands.length; i++) {
+                            
+                            menuids[c] = dhhbrands[i].menus[0].id;
+                            menunames[c] = dhhbrands[i].name;
+                            c++;
+                        }
+                        //console.log(menuids.slice())
+                        return [menuids.slice(), menunames.slice()];
+                    }
+                    
+                } catch (error) {
+                    console.error(error);
+                    
+                }
+            }
+            
+            window.onload = function() {
+                menudataget().then(menudata => {
+                    if (menudata === null) {
+                        return;
+                    }
+                    console.log(menudata[0].length)
+                    for (let i = 0; i < menudata[0].length; i++) {
+                        const op = document.createElement("option")
+                        op.setAttribute("value",menudata[0][i]);
+                        op.textContent = menudata[1][i];
+                        document.getElementById("locselect").appendChild(op)
+                    }
+                    
+                })
+            }
+        </script>
+    </body>
+</html>

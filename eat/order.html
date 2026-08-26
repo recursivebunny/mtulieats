@@ -112,14 +112,17 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
                     console.error("cart empty!") //temporary
                     return;
                 } else {
-                    const time_expire = new Date(Date.now() + 1440*60000);//expire in 24 hours (temporary)
-                        // Source - https://stackoverflow.com/a/1214753
-                        // Posted by Kip, modified by community. See post 'Timeline' for change history
-                        // Retrieved 2026-08-24, License - CC BY-SA 4.0
+                    let time_expire = new Date(Date.now());
+                    time_expire.setDate(time_expire.getDate() + 1)
+                    time_expire.setHours(0)
+                    time_expire.setMinutes(0)
+                    time_expire.setSeconds(0)
+                    time_expire.setMilliseconds(0) 
+                    time_expire = time_expire.getTime() / 1000; //expires at 12am EST next day
 
                     console.log(JSON.stringify({
                             "content": JSON.parse(JSON.stringify(cart.slice())),
-                            "expires": time_expire.valueOf(),
+                            "expires": time_expire,
                             "comment": "None" //temporary
                             }))
                     
@@ -127,7 +130,7 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
                         method: "POST",
                         body: JSON.stringify({
                             "content": cart.slice(),
-                            "expires": time_expire.valueOf(),
+                            "expires": time_expire,
                             "comment": "None" //temporary
                             })
                     })
@@ -136,6 +139,9 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
                         console.error("order place failed! reason: " + resp.statusText)
                     } else {
                         console.log("yippee")
+                        const rjson = await resp.json();
+                        const time = new Date(time_expire * 1000)
+                        window.location.href = "/eat/success?id=" + rjson.id + "&exptime=" + time.toDateString();
                         //TODO: go to success page with response data displayed for user to screenshot or smth
                     }
                     

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>Congrats! Your order has been placed.</div>
+        <p>Your order ID is <span id="ordernum">NONE</span></p>
+        <p>You will be notified via your MTU email when your order is ready for pickup.</p>
+        <p>Note that your order expires at 12am EST on <span id="ordertime">NONE</span>. After this time, you will need to place a new order.</p>
+        <a href="orderhistory">View all orders...</a>
+        <script>
+            window.onload = function() {
+                let params = new URLSearchParams(document.location.search);
+                document.getElementById("ordernum").textContent = params.get("id")
+                document.getElementById("ordertime").textContent = params.get("exptime")
+            }
+        </script>
+    </body>
+</html>

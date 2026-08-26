@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<!--
+Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this template
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        Enter the verification code sent to <span id="username"></span>@mtu.edu:
+        <input type="password" name="code" id="code"></input>
+        <button id="verifybutton" onclick="verify()">Login</button>
+        <script>
+                let ret;
+                
+                async function verify() {
+                    const c = document.getElementById("code").value
+                    if (c == "") {
+                        console.error("no code!")
+                        return;
+                    }
+                    const resp = await fetch("/eat/api/verify", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            "code": c
+                        })
+                    })
+                    await console.log(resp)
+                    if (!resp.ok) {
+                        if (resp.status == 401) {
+                            console.error("code failed")
+                        }
+                    } else {
+                        window.location.href = ret; 
+                    }
+                }
+            
+                window.onload = function() {
+                    const u = document.getElementById("username")
+                    let params = new URLSearchParams(document.location.search);
+                    ret = "/eat"
+                    if (params.get("returnto") !== null && params.get("returnto") !== "") {
+                        ret = params.get("returnto")
+                    }
+                    
+                    u.textContent = params.get("username")
+                }
+            </script>
+    </body>
+</html>

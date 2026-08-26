@@ -13,8 +13,32 @@ Click nbfs://nbhost/SystemFileSystem/Templates/ClientSide/html.html to edit this
         <div>
             MTU username (i.e. if your mtu email is stnovabeast@mtu.edu, enter stnovabeast):
             <input type="text" name="username" id="username"></input>
+            <button id="verifybutton" onclick="verify()">Verify</button>
             
-            <script></script>
+            <script>
+                async function verify() {
+                    let params = new URLSearchParams(document.location.search);
+                    ret = params.get("returnto")
+                    const u = document.getElementById("username").value
+                    if (u == "") {
+                        console.error("no username!")
+                        return;
+                    }
+                    const resp = await fetch("/eat/api/login", {
+                        method: "POST",
+                        body: JSON.stringify({
+                            "username": u
+                        })
+                    })
+                    if (!resp.ok) {
+                        if (resp.status == 500) {
+                            console.error("email failed")
+                        }
+                    } else {
+                        window.location.href = "/eat/verify?username=" + u + "&returnto=" + ret
+                    }
+                }
+            </script>
         </div>
     </body>
 </html>
